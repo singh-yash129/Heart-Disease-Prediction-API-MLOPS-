@@ -7,11 +7,6 @@ on:
         description: "External API URL to test against (or leave default for live cluster)"
         required: false
         default: "http://136.111.114.220"
-  push:
-    branches: [main]
-    paths-ignore:
-      - '**.md'
-      - 'docs/**'
 
 jobs:
   verify-deliverables:
