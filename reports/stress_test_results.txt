@@ -1,2 +1,2 @@
 src/stress_test.lua: cannot open src/stress_test.lua: Too many open files
-unable to create thread 11: Too many open files
+unable to create thread 9: Too many open files
