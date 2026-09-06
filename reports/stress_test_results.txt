@@ -1,2 +1,22 @@
-src/stress_test.lua: cannot open src/stress_test.lua: Too many open files
-unable to create thread 9: Too many open files
+Running 30s test @ http://136.111.114.220/predict
+  4 threads and 2100 connections
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency     1.31s   397.85ms   2.00s    65.82%
+    Req/Sec    16.89     14.09    80.00     82.82%
+  1347 requests in 30.05s, 393.54KB read
+  Socket errors: connect 0, read 2, write 7, timeout 1031
+Requests/sec:     44.82
+Transfer/sec:     13.10KB
+
+===== Stress Test Results =====
+Requests/sec   : 44.82
+Total requests : 1347
+Success (200)  : 0
+Errors         : 0
+Timeouts       : 1031
+Latency p50    : 1304.68 ms
+Latency p90    : 1884.22 ms
+Latency p99    : 1986.69 ms
+Latency p99.9  : 1998.95 ms
+Max latency    : 1998.95 ms
+================================
