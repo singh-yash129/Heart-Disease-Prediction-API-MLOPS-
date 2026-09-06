@@ -29,25 +29,29 @@ spec:
                 secretKeyRef:
                   name: gcp-secrets
                   key: project_id
+                  optional: true        # Don't crash if secret missing
           resources:
             requests:
-              cpu: "250m"
-              memory: "512Mi"
+              cpu: "100m"               # Lowered for GKE Autopilot scheduling
+              memory: "256Mi"
             limits:
               cpu: "500m"
               memory: "1Gi"
+          # Give the app 60s to start (model loading + uvicorn startup)
           livenessProbe:
             httpGet:
               path: /health
               port: 8080
-            initialDelaySeconds: 20
-            periodSeconds: 15
-            failureThreshold: 3
+            initialDelaySeconds: 60
+            periodSeconds: 20
+            failureThreshold: 5
+            timeoutSeconds: 10
           readinessProbe:
             httpGet:
               path: /health
               port: 8080
-            initialDelaySeconds: 15
-            periodSeconds: 10
-            failureThreshold: 3
+            initialDelaySeconds: 45
+            periodSeconds: 15
+            failureThreshold: 5
+            timeoutSeconds: 10
       terminationGracePeriodSeconds: 30

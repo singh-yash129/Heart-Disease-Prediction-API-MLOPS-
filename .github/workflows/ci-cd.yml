@@ -139,7 +139,9 @@ jobs:
           kubectl apply -f k8s/hpa.yaml
 
       - name: Wait for rollout
-        run: kubectl rollout status deployment/heart-disease-api --timeout=300s
+        run: |
+          echo "⏳ Waiting up to 10 minutes for rollout (GKE Autopilot needs time to provision nodes)..."
+          kubectl rollout status deployment/heart-disease-api --timeout=600s
 
       - name: Verify deployment
         run: |
