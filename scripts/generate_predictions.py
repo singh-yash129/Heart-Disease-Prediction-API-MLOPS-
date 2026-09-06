@@ -43,7 +43,7 @@ def random_patient():
 
 
 def run():
-    print(f"🚀 Sending 100 per-sample predictions to {ENDPOINT}")
+    print(f"[START] Sending 100 per-sample predictions to {ENDPOINT}")
     print("   Each prediction is individually logged to GCP Cloud Logging.\n")
 
     results = []
@@ -68,13 +68,13 @@ def run():
             }
             results.append(result_row)
             success += 1
-            label = "❤️ " if data["prediction"] == 1 else "✅ "
+            label = "[HD]" if data["prediction"] == 1 else "[OK]"
             print(f"  [{i:3d}] {label} {data['prediction_label']:20s} "
                   f"(p={data['probability']:.3f})  age={patient['age']} gender={patient['gender']}")
 
         except Exception as e:
             failed += 1
-            print(f"  [{i:3d}] ❌ ERROR: {e}")
+            print(f"  [{i:3d}] [ERR] ERROR: {e}")
             results.append({"sample_no": i, "error": str(e), **patient})
 
         # Small delay to avoid overwhelming local dev server
@@ -88,10 +88,10 @@ def run():
             writer = csv.DictWriter(f, fieldnames=fieldnames)
             writer.writeheader()
             writer.writerows(results)
-        print(f"\n💾 Results saved → {csv_path}")
+        print(f"\nResults saved -> {csv_path}")
 
-    print(f"\n📊 Summary: {success} succeeded, {failed} failed out of 100")
-    print("✅ All predictions logged to GCP Cloud Logging via the API.")
+    print(f"\nSummary: {success} succeeded, {failed} failed out of 100")
+    print("All predictions logged to GCP Cloud Logging via the API.")
     print("\nView logs at:")
     print("  https://console.cloud.google.com/logs/query;query=logName%3D%22heart-disease-api%22")
     return results
