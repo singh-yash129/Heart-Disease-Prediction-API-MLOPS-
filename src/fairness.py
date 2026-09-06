@@ -115,7 +115,14 @@ def run_fairness_analysis():
         for k, v in mf.overall.items():
             f.write(f"| {k} | {float(v):.4f} |\n")
         f.write("\n## Metrics by Age Group\n\n")
-        f.write(group_df.to_markdown(index=False))
+        try:
+            f.write(group_df.to_markdown(index=False))
+        except Exception:
+            cols = list(group_df.columns)
+            f.write("| " + " | ".join(str(c) for c in cols) + " |\n")
+            f.write("| " + " | ".join(["---"] * len(cols)) + " |\n")
+            for _, r in group_df.iterrows():
+                f.write("| " + " | ".join(f"{val:.4f}" if isinstance(val, (float, np.floating)) else str(val) for val in r) + " |\n")
         f.write("\n\n## Disparity Analysis\n\n")
         f.write(f"- **Max accuracy gap** across age groups: `{max_acc_gap:.4f}`\n")
         f.write(f"- **Max recall gap** across age groups: `{max_rec_gap:.4f}`\n\n")
