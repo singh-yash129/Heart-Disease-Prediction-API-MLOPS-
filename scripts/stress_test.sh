@@ -3,9 +3,12 @@
 # Usage: bash scripts/stress_test.sh <EXTERNAL_IP>
 set -e
 
+# Raise open file descriptor limit for 2100 concurrent sockets
+ulimit -n 65535 2>/dev/null || ulimit -n 4096 2>/dev/null || true
+
 EXTERNAL_IP="${1:-localhost:8080}"
 URL="http://${EXTERNAL_IP}/predict"
-THREADS=12
+THREADS=4
 CONNECTIONS=2100      # >2000 as required
 DURATION=30s
 LUA_SCRIPT="src/stress_test.lua"
