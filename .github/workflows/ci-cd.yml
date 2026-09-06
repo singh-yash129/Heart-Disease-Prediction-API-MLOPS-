@@ -8,10 +8,10 @@ on:
   workflow_dispatch:
 
 env:
-  GCP_REGION:       us-central1
-  GKE_CLUSTER:      heart-disease-cluster
-  IMAGE_NAME:       heart-disease-api
-  REGISTRY:         gcr.io
+  GCP_REGION:   us-central1
+  GKE_CLUSTER:  heart-disease-cluster
+  IMAGE_NAME:   heart-disease-api
+  REGISTRY:     gcr.io
 
 jobs:
   # ──────────────────────────────────────────────────────────────────────────
@@ -31,13 +31,14 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # ── Workload Identity Federation Authentication (no keys!) ──────────────
+      # ── Workload Identity Federation (WIF) — no service account keys ───────
       - name: Authenticate to GCP via WIF
         id: auth
         uses: google-github-actions/auth@v2
         with:
           workload_identity_provider: ${{ secrets.WIF_PROVIDER }}
           service_account:           ${{ secrets.WIF_SERVICE_ACCOUNT }}
+          token_format:              access_token
 
       - name: Set up Cloud SDK
         uses: google-github-actions/setup-gcloud@v2
@@ -48,14 +49,14 @@ jobs:
         run: gcloud auth configure-docker gcr.io --quiet
 
       # ── Build & Push ────────────────────────────────────────────────────────
-      - name: Set image tag
+      - name: Set image tags
         id: meta
         run: |
           SHA_TAG="${{ env.REGISTRY }}/${{ secrets.GCP_PROJECT_ID }}/${{ env.IMAGE_NAME }}:${{ github.sha }}"
           LATEST_TAG="${{ env.REGISTRY }}/${{ secrets.GCP_PROJECT_ID }}/${{ env.IMAGE_NAME }}:latest"
-          echo "sha_tag=${SHA_TAG}" >> $GITHUB_OUTPUT
+          echo "sha_tag=${SHA_TAG}"    >> $GITHUB_OUTPUT
           echo "latest_tag=${LATEST_TAG}" >> $GITHUB_OUTPUT
-          echo "SHA_TAG=${SHA_TAG}" >> $GITHUB_ENV
+          echo "SHA_TAG=${SHA_TAG}"    >> $GITHUB_ENV
           echo "LATEST_TAG=${LATEST_TAG}" >> $GITHUB_ENV
 
       - name: Build Docker image
@@ -91,10 +92,12 @@ jobs:
 
       # ── WIF Auth ─────────────────────────────────────────────────────────────
       - name: Authenticate to GCP via WIF
+        id: auth
         uses: google-github-actions/auth@v2
         with:
           workload_identity_provider: ${{ secrets.WIF_PROVIDER }}
           service_account:           ${{ secrets.WIF_SERVICE_ACCOUNT }}
+          token_format:              access_token
 
       - name: Set up Cloud SDK
         uses: google-github-actions/setup-gcloud@v2
@@ -102,8 +105,7 @@ jobs:
           project_id: ${{ secrets.GCP_PROJECT_ID }}
 
       - name: Install gke-gcloud-auth-plugin
-        run: |
-          gcloud components install gke-gcloud-auth-plugin --quiet
+        run: gcloud components install gke-gcloud-auth-plugin --quiet
 
       - name: Get GKE credentials
         run: |
@@ -111,19 +113,20 @@ jobs:
             --region ${{ env.GCP_REGION }} \
             --project ${{ secrets.GCP_PROJECT_ID }}
 
-      # ── Create GCP project-id secret in K8s ────────────────────────────────
-      - name: Create/update K8s secret for GCP project
+      # ── Create K8s secret for GCP project ID ───────────────────────────────
+      - name: Create K8s secret
         run: |
           kubectl create secret generic gcp-secrets \
             --from-literal=project_id="${{ secrets.GCP_PROJECT_ID }}" \
             --dry-run=client -o yaml | kubectl apply -f -
 
-      # ── Update image in deployment manifest & apply ─────────────────────────
-      - name: Substitute image tag in deployment manifest
+      # ── Substitute image in deployment manifest ─────────────────────────────
+      - name: Set image in deployment manifest
         run: |
           IMAGE="${{ env.REGISTRY }}/${{ secrets.GCP_PROJECT_ID }}/${{ env.IMAGE_NAME }}:${{ github.sha }}"
           sed -i "s|GCR_IMAGE_PLACEHOLDER|${IMAGE}|g" k8s/deployment.yaml
           echo "✅ Image set to: ${IMAGE}"
+          cat k8s/deployment.yaml | grep image:
 
       - name: Apply Kubernetes manifests
         run: |
@@ -133,15 +136,14 @@ jobs:
 
       - name: Wait for rollout
         run: |
-          kubectl rollout status deployment/heart-disease-api \
-            --timeout=300s
+          kubectl rollout status deployment/heart-disease-api --timeout=300s
 
       - name: Verify deployment
         run: |
           echo "=== Pods ==="
           kubectl get pods -l app=heart-disease-api
           echo ""
-          echo "=== Service (wait for External IP) ==="
+          echo "=== Service ==="
           kubectl get svc heart-disease-api-svc
           echo ""
           echo "=== HPA (max 3 pods) ==="
@@ -149,14 +151,14 @@ jobs:
 
       - name: Get External IP
         run: |
-          echo "⏳ Waiting for External IP assignment..."
+          echo "⏳ Waiting for External IP..."
           for i in {1..20}; do
             IP=$(kubectl get svc heart-disease-api-svc \
               -o jsonpath='{.status.loadBalancer.ingress[0].ip}' 2>/dev/null || true)
             if [ -n "${IP}" ]; then
               echo "✅ External IP: ${IP}"
-              echo "API URL: http://${IP}/predict"
-              echo "API Docs: http://${IP}/docs"
+              echo "   API URL  : http://${IP}/predict"
+              echo "   API Docs : http://${IP}/docs"
               break
             fi
             echo "   Attempt ${i}/20 — waiting 15s..."
