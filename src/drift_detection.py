@@ -24,8 +24,11 @@ def run_drift_detection(current_data_path: str = None):
             from evidently.metric_preset import DataDriftPreset
             from evidently.metrics import DatasetDriftMetric
         except ImportError:
+            # pyrefly: ignore [missing-import]
             from evidently.legacy.report import Report
+            # pyrefly: ignore [missing-import]
             from evidently.legacy.metric_preset import DataDriftPreset
+            # pyrefly: ignore [missing-import]
             from evidently.legacy.metrics import DatasetDriftMetric
 
     # ── Load reference (training) data ────────────────────────────────────────
