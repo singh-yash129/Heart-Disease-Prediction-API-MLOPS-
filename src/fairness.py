@@ -27,6 +27,8 @@ def bin_age(age_series: pd.Series) -> pd.Series:
 
 
 def run_fairness_analysis():
+    import warnings
+    warnings.filterwarnings("ignore")
     from fairlearn.metrics import MetricFrame, selection_rate
     from sklearn.metrics import accuracy_score, precision_score, recall_score
 
