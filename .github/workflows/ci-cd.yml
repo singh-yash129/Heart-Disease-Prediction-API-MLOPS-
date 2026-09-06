@@ -45,8 +45,13 @@ jobs:
         with:
           project_id: ${{ secrets.GCP_PROJECT_ID }}
 
-      - name: Configure Docker for GCR
-        run: gcloud auth configure-docker gcr.io --quiet
+      # ── Login to GCR using the WIF access token ─────────────────────────────
+      - name: Login to GCR via Docker
+        uses: docker/login-action@v3
+        with:
+          registry: gcr.io
+          username: oauth2accesstoken
+          password: ${{ steps.auth.outputs.access_token }}
 
       # ── Build & Push ────────────────────────────────────────────────────────
       - name: Set image tags
@@ -54,9 +59,9 @@ jobs:
         run: |
           SHA_TAG="${{ env.REGISTRY }}/${{ secrets.GCP_PROJECT_ID }}/${{ env.IMAGE_NAME }}:${{ github.sha }}"
           LATEST_TAG="${{ env.REGISTRY }}/${{ secrets.GCP_PROJECT_ID }}/${{ env.IMAGE_NAME }}:latest"
-          echo "sha_tag=${SHA_TAG}"    >> $GITHUB_OUTPUT
+          echo "sha_tag=${SHA_TAG}"       >> $GITHUB_OUTPUT
           echo "latest_tag=${LATEST_TAG}" >> $GITHUB_OUTPUT
-          echo "SHA_TAG=${SHA_TAG}"    >> $GITHUB_ENV
+          echo "SHA_TAG=${SHA_TAG}"       >> $GITHUB_ENV
           echo "LATEST_TAG=${LATEST_TAG}" >> $GITHUB_ENV
 
       - name: Build Docker image
@@ -125,8 +130,7 @@ jobs:
         run: |
           IMAGE="${{ env.REGISTRY }}/${{ secrets.GCP_PROJECT_ID }}/${{ env.IMAGE_NAME }}:${{ github.sha }}"
           sed -i "s|GCR_IMAGE_PLACEHOLDER|${IMAGE}|g" k8s/deployment.yaml
-          echo "✅ Image set to: ${IMAGE}"
-          cat k8s/deployment.yaml | grep image:
+          echo "✅ Image → ${IMAGE}"
 
       - name: Apply Kubernetes manifests
         run: |
@@ -135,19 +139,13 @@ jobs:
           kubectl apply -f k8s/hpa.yaml
 
       - name: Wait for rollout
-        run: |
-          kubectl rollout status deployment/heart-disease-api --timeout=300s
+        run: kubectl rollout status deployment/heart-disease-api --timeout=300s
 
       - name: Verify deployment
         run: |
-          echo "=== Pods ==="
-          kubectl get pods -l app=heart-disease-api
-          echo ""
-          echo "=== Service ==="
-          kubectl get svc heart-disease-api-svc
-          echo ""
-          echo "=== HPA (max 3 pods) ==="
-          kubectl get hpa heart-disease-api-hpa
+          echo "=== Pods ===" && kubectl get pods -l app=heart-disease-api
+          echo "=== Service ===" && kubectl get svc heart-disease-api-svc
+          echo "=== HPA (max 3) ===" && kubectl get hpa heart-disease-api-hpa
 
       - name: Get External IP
         run: |
@@ -157,10 +155,9 @@ jobs:
               -o jsonpath='{.status.loadBalancer.ingress[0].ip}' 2>/dev/null || true)
             if [ -n "${IP}" ]; then
               echo "✅ External IP: ${IP}"
-              echo "   API URL  : http://${IP}/predict"
-              echo "   API Docs : http://${IP}/docs"
+              echo "   API: http://${IP}/predict"
+              echo "   Docs: http://${IP}/docs"
               break
             fi
-            echo "   Attempt ${i}/20 — waiting 15s..."
-            sleep 15
+            echo "   Attempt ${i}/20 — waiting 15s..." && sleep 15
           done
