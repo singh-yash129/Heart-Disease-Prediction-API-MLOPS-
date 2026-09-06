@@ -39,8 +39,13 @@ logger = get_logger("heart-disease-api")
 @app.on_event("startup")
 def startup_event():
     global MODEL, FEATURE_COLS
-    MODEL, FEATURE_COLS = load_model()
-    logger.info("Model loaded successfully", feature_cols=FEATURE_COLS)
+    try:
+        MODEL, FEATURE_COLS = load_model()
+        logger.info("Model loaded successfully", feature_cols=str(FEATURE_COLS))
+        print(f"[INFO] Model ready. Features: {FEATURE_COLS}", file=__import__('sys').stderr)
+    except Exception as e:
+        print(f"[ERROR] Failed to load model: {e}", file=__import__('sys').stderr)
+        raise RuntimeError(f"Model loading failed: {e}")
 
 
 # ── Schemas ───────────────────────────────────────────────────────────────────
