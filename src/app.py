@@ -50,18 +50,31 @@ def startup_event():
 
 # ── Schemas ───────────────────────────────────────────────────────────────────
 class PatientFeatures(BaseModel):
+    # pyrefly: ignore [unexpected-keyword]
     age:      float = Field(..., example=63,    description="Age in years")
+     # pyrefly: ignore [unexpected-keyword]
     gender:   str   = Field(..., example="male", description="male or female")
+     # pyrefly: ignore [unexpected-keyword]
     cp:       float = Field(..., example=3,    description="Chest pain type (0-3)")
+     # pyrefly: ignore [unexpected-keyword]
     trestbps: float = Field(..., example=145.0, description="Resting blood pressure (mmHg)")
+     # pyrefly: ignore [unexpected-keyword]
     chol:     float = Field(..., example=233.0, description="Serum cholesterol (mg/dl)")
+     # pyrefly: ignore [unexpected-keyword]
     fbs:      float = Field(..., example=1,    description="Fasting blood sugar >120 mg/dl (0/1)")
+     # pyrefly: ignore [unexpected-keyword]
     restecg:  float = Field(..., example=0,    description="Resting ECG results (0/1/2)")
+     # pyrefly: ignore [unexpected-keyword]
     thalach:  float = Field(..., example=150.0, description="Max heart rate achieved")
+     # pyrefly: ignore [unexpected-keyword]
     exang:    float = Field(..., example=0,    description="Exercise induced angina (0/1)")
+     # pyrefly: ignore [unexpected-keyword]
     oldpeak:  float = Field(..., example=2.3,  description="ST depression induced by exercise")
+     # pyrefly: ignore [unexpected-keyword]
     slope:    float = Field(..., example=0,    description="Slope of peak exercise ST segment")
+     # pyrefly: ignore [unexpected-keyword]
     ca:       float = Field(..., example=0,    description="Major vessels colored by fluoroscopy (0-3)")
+     # pyrefly: ignore [unexpected-keyword]
     thal:     float = Field(..., example=1,    description="Thal: 0=normal; 1=fixed defect; 2=reversable defect")
 
     class Config:

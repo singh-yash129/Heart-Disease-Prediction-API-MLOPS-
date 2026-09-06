@@ -33,10 +33,13 @@ def run_shap_analysis():
     X = df[feature_cols].astype(float)
     y = df["target"]
 
+    import warnings
+    warnings.filterwarnings("ignore")
+
     # Use a background sample for SHAP KernelExplainer (works with any sklearn model)
     background = shap.sample(X, 50, random_state=42)
     explainer  = shap.KernelExplainer(
-        lambda x: model.predict_proba(x)[:, 1],
+        lambda x: model.predict_proba(pd.DataFrame(x, columns=feature_cols))[:, 1],
         background,
     )
     shap_values = explainer.shap_values(X.sample(100, random_state=42))
