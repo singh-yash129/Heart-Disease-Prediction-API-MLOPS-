@@ -14,9 +14,19 @@ os.makedirs(REPORTS_DIR, exist_ok=True)
 
 
 def run_drift_detection(current_data_path: str = None):
-    from evidently.report import Report
-    from evidently.metric_preset import DataDriftPreset
-    from evidently.metrics import DatasetDriftMetric
+    try:
+        from evidently.report import Report
+        from evidently.metric_preset import DataDriftPreset
+        from evidently.metrics import DatasetDriftMetric
+    except ImportError:
+        try:
+            from evidently import Report
+            from evidently.metric_preset import DataDriftPreset
+            from evidently.metrics import DatasetDriftMetric
+        except ImportError:
+            from evidently.legacy.report import Report
+            from evidently.legacy.metric_preset import DataDriftPreset
+            from evidently.legacy.metrics import DatasetDriftMetric
 
     # ── Load reference (training) data ────────────────────────────────────────
     train_data = joblib.load(os.path.join(MODEL_DIR, "train_data.pkl"))
