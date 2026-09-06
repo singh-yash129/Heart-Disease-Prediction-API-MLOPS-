@@ -24,14 +24,9 @@ ENV/
 model/*.pkl
 model/*.joblib
 
-### Reports (generated at runtime) ###
-reports/*.png
-reports/*.html
-reports/*.csv
-reports/*.txt
-reports/*.json
-# Keep markdown reports
-!reports/*.md
+### Reports (Tracked for OPPE evaluation proofs) ###
+# Keep all deliverable reports
+!reports/*
 
 ### IDE ###
 .idea/

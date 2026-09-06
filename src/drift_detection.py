@@ -36,7 +36,10 @@ def run_drift_detection(current_data_path: str = None):
     feature_subset = [c for c in ref_cols if c in current_raw.columns]
     current = current_raw[feature_subset].reset_index(drop=True)
 
-    # Align dtypes
+    # Align dtypes & handle gender string if present
+    if "gender" in current.columns and current["gender"].dtype == object:
+        current["gender"] = current["gender"].map({"male": 0, "female": 1, "Male": 0, "Female": 1}).fillna(0)
+
     for col in feature_subset:
         current[col]   = pd.to_numeric(current[col],   errors="coerce")
         reference[col] = pd.to_numeric(reference[col], errors="coerce")
