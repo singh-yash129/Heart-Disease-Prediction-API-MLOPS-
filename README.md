@@ -1,5 +1,4 @@
-# Heart Disease Prediction API — MLOPS OPPE-2
-# Roll Number: 23F2004644
+# Heart Disease Prediction API — MLOPS 
 
 ## Overview
 
